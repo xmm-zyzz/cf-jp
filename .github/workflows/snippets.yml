@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -21,7 +23,7 @@ jobs:
       - name: Install Obfuscator
         run: npm install javascript-obfuscator
 
-      - name: Obfuscate from local source file
+      - name: Obfuscate from local source file (Performance-First)
         run: |
           node -e "
             const JavaScriptObfuscator = require('javascript-obfuscator');
@@ -33,7 +35,7 @@ jobs:
             const sourceFilePath = path.join(process.cwd(), sourceFileName);
 
             if (!fs.existsSync(sourceFilePath)) {
-              console.error(`错误：在路径 '$\{sourceFilePath\}' 未找到源文件。请确保您的仓库根目录有名为 'snippets' 的文件。`);
+              console.error(\`错误：在路径 '\${sourceFilePath}' 未找到源文件。请确保您的仓库根目录有名为 'snippets' 的文件。\`);
               process.exit(1);
             }
 
@@ -44,30 +46,27 @@ jobs:
               process.exit(1);
             }
 
-            // --- 最终平衡型混淆配置 ---
+            // --- 最终性能优先配置 (为 CF Workers 优化) ---
             const obfuscationOptions = {
                 compact: true,
-                controlFlowFlattening: true,
-                controlFlowFlatteningThreshold: 0.75,
-                deadCodeInjection: true,
-                deadCodeInjectionThreshold: 0.4,
+                controlFlowFlattening: false, // 【已禁用】避免内存/CPU超限
+                deadCodeInjection: false, // 【已禁用】
                 stringArray: true,
-                stringArrayEncoding: ['base64'],
+                stringArrayEncoding: ['base64'], // 【已降级】使用更快的 base64 编码以避免 CPU 超限
                 stringArrayThreshold: 0.75,
-                renameGlobals: true,
+                renameGlobals: false, // 【已禁用】
                 identifierNamesGenerator: 'mangled',
-                numbersToExpressions: true,
-                splitStrings: true,
-                splitStringsChunkLength: 10,
-                transformObjectKeys: true,
-                selfDefending: false,
+                numbersToExpressions: true, // 【已启用】
+                splitStrings: false, // 【已禁用】避免 CPU 超限
+                transformObjectKeys: false, // 【已禁用】避免 CPU 超限
+                selfDefending: true, // 【已启用】
                 debugProtection: false
             };
 
             const obfuscatedCode = JavaScriptObfuscator.obfuscate(originalCode, obfuscationOptions).getObfuscatedCode();
             
             fs.writeFileSync(path.join(process.cwd(), outputFileName), obfuscatedCode, 'utf8');
-            console.log(`成功将 '$\{sourceFileName\}' 混淆并保存至 '$\{outputFileName\}'。`);
+            console.log(\`成功将 '\${sourceFileName}' 混淆并保存至 '\${outputFileName}'。\`);
           "
 
       - name: Commit and push the obfuscated file
@@ -78,6 +77,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit, the obfuscated file is already up-to-date."
           else
-            git commit -m "build: Generate and obfuscate worker script"
+            git commit -m "build: Final performance-first obfuscation configuration"
             git push
           fi
