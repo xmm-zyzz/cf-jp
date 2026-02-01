@@ -5,7 +5,6 @@ import { connect } from 'cloudflare:sockets';
 const authToken = 'e258977b-e413-4718-a3af-02d75492c349';
 const fallbackAddress = 'ProxyIP.JP.CMLiussss.net';
 const fallbackPort = '443';
-
 const E_INVALID_DATA = atob('aW52YWxpZCBkYXRh');
 const E_INVALID_USER = atob('aW52YWxpZCB1c2Vy');
 const E_UNSUPPORTED_CMD = atob('Y29tbWFuZCBpcyBub3Qgc3VwcG9ydGVk');
