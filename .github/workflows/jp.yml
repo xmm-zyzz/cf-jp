@@ -13,7 +13,8 @@ on:
 jobs:
   build-and-obfuscate:
     runs-on: ubuntu-latest
-    # 新增：避免多触发条件下重复运行（可选，推荐加）
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     concurrency:
       group: ${{ github.workflow }}
       cancel-in-progress: true
