@@ -85,7 +85,7 @@ function buildVlessLink(uuid, ip, port, name, workerHost, ech) {
   });
 
   if (ech) {
-    p.set("alpn", "h3,h2,http/1.1");
+    p.set("alpn", "http/1.1");
     p.set("ech", ech);
   }
 
